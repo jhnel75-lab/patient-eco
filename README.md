@@ -1,5 +1,7 @@
 # Patient Ecosystem POC
 
+[![CI](https://github.com/jhnel75-lab/patient-eco/actions/workflows/ci.yml/badge.svg)](https://github.com/jhnel75-lab/patient-eco/actions/workflows/ci.yml)
+
 A local proof-of-concept for a patient management system with file upload capability and JWT-based patient self-service authentication.
 
 ## Architecture
