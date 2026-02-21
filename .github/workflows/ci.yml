@@ -25,9 +25,9 @@ jobs:
         working-directory: backend
         run: npm ci
 
-      - name: Syntax check
+      - name: Test
         working-directory: backend
-        run: node --check src/index.js src/routes/auth.js src/routes/patients.js src/routes/documents.js src/middleware/auth.js src/middleware/upload.js src/config/database.js
+        run: npm test
 
   frontend:
     name: Frontend
@@ -46,6 +46,10 @@ jobs:
       - name: Install dependencies
         working-directory: frontend
         run: npm ci
+
+      - name: Test
+        working-directory: frontend
+        run: npm test
 
       - name: Build
         working-directory: frontend

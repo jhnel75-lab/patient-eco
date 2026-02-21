@@ -66,34 +66,34 @@ export default function AuthPage({ onAuth }) {
             <>
               <div style={styles.row}>
                 <div style={styles.fieldHalf}>
-                  <label style={styles.label}>First Name</label>
-                  <input style={styles.input} required value={form.first_name} onChange={set('first_name')} />
+                  <label htmlFor="first_name" style={styles.label}>First Name</label>
+                  <input id="first_name" style={styles.input} required value={form.first_name} onChange={set('first_name')} />
                 </div>
                 <div style={styles.fieldHalf}>
-                  <label style={styles.label}>Last Name</label>
-                  <input style={styles.input} required value={form.last_name} onChange={set('last_name')} />
+                  <label htmlFor="last_name" style={styles.label}>Last Name</label>
+                  <input id="last_name" style={styles.input} required value={form.last_name} onChange={set('last_name')} />
                 </div>
               </div>
               <div style={styles.field}>
-                <label style={styles.label}>Date of Birth</label>
-                <input style={styles.input} type="date" required value={form.date_of_birth} onChange={set('date_of_birth')} />
+                <label htmlFor="date_of_birth" style={styles.label}>Date of Birth</label>
+                <input id="date_of_birth" style={styles.input} type="date" required value={form.date_of_birth} onChange={set('date_of_birth')} />
               </div>
             </>
           )}
 
           <div style={styles.field}>
-            <label style={styles.label}>Email</label>
-            <input style={styles.input} type="email" required value={form.email} onChange={set('email')} />
+            <label htmlFor="email" style={styles.label}>Email</label>
+            <input id="email" style={styles.input} type="email" required value={form.email} onChange={set('email')} />
           </div>
           <div style={styles.field}>
-            <label style={styles.label}>Password</label>
-            <input style={styles.input} type="password" required minLength={8} value={form.password} onChange={set('password')} />
+            <label htmlFor="password" style={styles.label}>Password</label>
+            <input id="password" style={styles.input} type="password" required minLength={8} value={form.password} onChange={set('password')} />
             {mode === 'register' && <p style={styles.hint}>Minimum 8 characters</p>}
           </div>
 
           {error && <div style={styles.error}>{error}</div>}
 
-          <button type="submit" disabled={loading} style={styles.submit}>
+          <button type="submit" data-testid="auth-submit" disabled={loading} style={styles.submit}>
             {loading ? 'Please wait…' : mode === 'login' ? 'Log In' : 'Create Account'}
           </button>
         </form>
