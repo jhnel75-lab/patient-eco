@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Patient Ecosystem POC",
+      "Group": "Servers",
+      "Host": "127.0.0.1",
+      "Port": 5432,
+      "MaintenanceDB": "patient_ecosystem",
+      "Username": "postgres",
+      "SSLMode": "prefer",
+      "Comment": "Local POC - patient_ecosystem database"
+    }
+  }
+}
