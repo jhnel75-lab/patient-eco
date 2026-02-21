@@ -5,9 +5,10 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:3001", "type": "string" },
-    { "key": "patientId", "value": "1", "type": "string" },
-    { "key": "docId", "value": "1", "type": "string" }
+    { "key": "baseUrl",   "value": "http://localhost:3001", "type": "string" },
+    { "key": "patientId", "value": "1",                     "type": "string" },
+    { "key": "docId",     "value": "1",                     "type": "string" },
+    { "key": "token",     "value": "",                       "type": "string" }
   ],
   "item": [
     {
@@ -23,32 +24,83 @@
       ]
     },
     {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) {",
+                  "  pm.collectionVariables.set('token', res.token);",
+                  "  pm.collectionVariables.set('patientId', String(res.patient.id));",
+                  "  console.log('Token and patientId saved from Register');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Test\",\n  \"last_name\": \"User\",\n  \"date_of_birth\": \"1990-01-15\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) {",
+                  "  pm.collectionVariables.set('token', res.token);",
+                  "  pm.collectionVariables.set('patientId', String(res.patient.id));",
+                  "  console.log('Token and patientId saved from Login');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Patients",
       "item": [
         {
-          "name": "List All Patients",
+          "name": "Get My Profile",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/patients"
+            "url": "{{baseUrl}}/api/patients",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
           }
         },
         {
           "name": "Get Patient by ID",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/patients/{{patientId}}"
-          }
-        },
-        {
-          "name": "Create Patient",
-          "request": {
-            "method": "POST",
-            "url": "{{baseUrl}}/api/patients",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"first_name\": \"Test\",\n  \"last_name\": \"Patient\",\n  \"date_of_birth\": \"1990-01-15\",\n  \"email\": \"test.patient@example.com\",\n  \"phone\": \"555-9999\",\n  \"address\": \"100 Test Lane, Springfield, IL\",\n  \"medical_record_number\": \"MRN-TEST01\",\n  \"insurance_provider\": \"TestCare\",\n  \"insurance_id\": \"TC-0001\",\n  \"notes\": \"POC test patient\"\n}"
-            }
+            "url": "{{baseUrl}}/api/patients/{{patientId}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
           }
         },
         {
@@ -56,7 +108,10 @@
           "request": {
             "method": "PUT",
             "url": "{{baseUrl}}/api/patients/{{patientId}}",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"phone\": \"555-0000\",\n  \"notes\": \"Updated via Postman\"\n}"
@@ -67,7 +122,8 @@
           "name": "Delete Patient",
           "request": {
             "method": "DELETE",
-            "url": "{{baseUrl}}/api/patients/{{patientId}}"
+            "url": "{{baseUrl}}/api/patients/{{patientId}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
           }
         }
       ]
@@ -79,7 +135,8 @@
           "name": "List Patient Documents",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/patients/{{patientId}}/documents"
+            "url": "{{baseUrl}}/api/patients/{{patientId}}/documents",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
           }
         },
         {
@@ -87,12 +144,13 @@
           "request": {
             "method": "POST",
             "url": "{{baseUrl}}/api/patients/{{patientId}}/documents",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
             "body": {
               "mode": "formdata",
               "formdata": [
-                { "key": "document",      "type": "file",  "src": "" },
-                { "key": "document_type", "type": "text",  "value": "consent_form" },
-                { "key": "description",   "type": "text",  "value": "Test upload via Postman" }
+                { "key": "document",      "type": "file", "src": "" },
+                { "key": "document_type", "type": "text", "value": "consent_form" },
+                { "key": "description",   "type": "text", "value": "Test upload via Postman" }
               ]
             }
           }
@@ -101,14 +159,16 @@
           "name": "Download Document",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/documents/{{docId}}/download"
+            "url": "{{baseUrl}}/api/documents/{{docId}}/download",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
           }
         },
         {
           "name": "Delete Document",
           "request": {
             "method": "DELETE",
-            "url": "{{baseUrl}}/api/documents/{{docId}}"
+            "url": "{{baseUrl}}/api/documents/{{docId}}",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
           }
         }
       ]
