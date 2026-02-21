@@ -25,6 +25,7 @@ Browser (Patient UI)
 | File Store  | Local filesystem | Patient document uploads |
 | DB GUI      | pgAdmin 4        | Database management      |
 | API Testing | Postman          | API development/testing  |
+| Testing     | Jest + Vitest    | Backend unit/integration tests, frontend component tests |
 | Version Ctrl| Git              | Source control           |
 | IDE         | VS Code          | Development              |
 
@@ -69,6 +70,16 @@ npm run dev
 ```
 
 Frontend runs at: http://localhost:5173
+
+### 4. Running tests
+
+```bash
+# Backend (Jest + Supertest) — 22 tests
+cd backend && npm test
+
+# Frontend (Vitest + React Testing Library) — 6 tests
+cd frontend && npm test
+```
 
 ---
 
@@ -155,6 +166,7 @@ Import `postman/patient-ecosystem.postman_collection.json` into Postman. The **R
 ```
 patient-ecosystem-poc/
 ├── backend/
+│   ├── jest.config.js
 │   ├── package.json
 │   ├── .env.example
 │   └── src/
@@ -165,9 +177,13 @@ patient-ecosystem-poc/
 │       │   ├── auth.js       # Register / login
 │       │   ├── patients.js   # Patient CRUD routes (auth-protected)
 │       │   └── documents.js  # Document upload/download routes (auth-protected)
-│       └── middleware/
-│           ├── auth.js       # JWT requireAuth middleware
-│           └── upload.js     # Multer file upload config
+│       ├── middleware/
+│       │   ├── auth.js       # JWT requireAuth middleware
+│       │   └── upload.js     # Multer file upload config
+│       └── __tests__/
+│           ├── auth.test.js       # Register and login route tests
+│           ├── middleware.test.js # requireAuth middleware tests
+│           └── patients.test.js   # Ownership enforcement tests
 ├── frontend/
 │   ├── package.json
 │   ├── index.html
@@ -179,8 +195,12 @@ patient-ecosystem-poc/
 │       │   ├── PatientForm.jsx
 │       │   ├── PatientList.jsx
 │       │   └── FileUpload.jsx
-│       └── services/
-│           └── api.js        # Axios API client with JWT interceptors
+│       ├── services/
+│       │   └── api.js        # Axios API client with JWT interceptors
+│       ├── test/
+│       │   └── setup.js      # Vitest setup (@testing-library/jest-dom)
+│       └── __tests__/
+│           └── AuthPage.test.jsx  # Login/register component tests
 ├── database/
 │   ├── schema.sql            # Table definitions
 │   ├── seed.sql              # Sample data
