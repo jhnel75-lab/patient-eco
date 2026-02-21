@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /home/jnel/patient-ecosystem-poc && git config user.email \"patient-poc@localhost\" && git config user.name \"Patient POC Dev\" && git add -A && git commit -m \"$\\(cat <<'EOF'\nInitial commit: Patient Ecosystem POC\n\n- React frontend with patient registration, registry, and file upload\n- Node.js/Express backend with full CRUD and file upload API\n- PostgreSQL schema with patients and documents tables\n- Multer file upload middleware with type/size validation\n- Postman collection for API testing\n- Seed data for development\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>\nEOF\n\\)\" 2>&1)"
+    ]
+  }
+}

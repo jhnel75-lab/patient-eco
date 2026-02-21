@@ -1,0 +1,117 @@
+{
+  "info": {
+    "name": "Patient Ecosystem POC",
+    "description": "REST API collection for the Patient Ecosystem POC",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3001", "type": "string" },
+    { "key": "patientId", "value": "1", "type": "string" },
+    { "key": "docId", "value": "1", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Patients",
+      "item": [
+        {
+          "name": "List All Patients",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/patients"
+          }
+        },
+        {
+          "name": "Get Patient by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/patients/{{patientId}}"
+          }
+        },
+        {
+          "name": "Create Patient",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/patients",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Test\",\n  \"last_name\": \"Patient\",\n  \"date_of_birth\": \"1990-01-15\",\n  \"email\": \"test.patient@example.com\",\n  \"phone\": \"555-9999\",\n  \"address\": \"100 Test Lane, Springfield, IL\",\n  \"medical_record_number\": \"MRN-TEST01\",\n  \"insurance_provider\": \"TestCare\",\n  \"insurance_id\": \"TC-0001\",\n  \"notes\": \"POC test patient\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Patient",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/api/patients/{{patientId}}",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"555-0000\",\n  \"notes\": \"Updated via Postman\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Patient",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/patients/{{patientId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Documents",
+      "item": [
+        {
+          "name": "List Patient Documents",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/patients/{{patientId}}/documents"
+          }
+        },
+        {
+          "name": "Upload Document",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/patients/{{patientId}}/documents",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "document",      "type": "file",  "src": "" },
+                { "key": "document_type", "type": "text",  "value": "consent_form" },
+                { "key": "description",   "type": "text",  "value": "Test upload via Postman" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Download Document",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/documents/{{docId}}/download"
+          }
+        },
+        {
+          "name": "Delete Document",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/documents/{{docId}}"
+          }
+        }
+      ]
+    }
+  ]
+}
