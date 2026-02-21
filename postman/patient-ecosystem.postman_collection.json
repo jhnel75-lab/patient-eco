@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Patient Ecosystem POC",
-    "description": "REST API collection for the Patient Ecosystem POC",
+    "description": "REST API collection for the Patient Ecosystem POC.\n\n## Getting started\n\n1. Run **Auth / Register** or **Auth / Login** — the test script automatically saves `{{token}}` and `{{patientId}}` as collection variables.\n2. All subsequent requests use those variables, so no manual copy-paste is needed.\n\n## Collection variables\n\n| Variable    | Description                                      |\n|-------------|--------------------------------------------------|\n| `baseUrl`   | API base URL (default: `http://localhost:3001`)  |\n| `token`     | JWT — populated automatically on login/register  |\n| `patientId` | Authenticated patient's ID — set on login/register |\n| `docId`     | Document ID — set manually for document requests |\n\n## Auth\n\nAll endpoints except **Health Check**, **Register**, and **Login** require a valid JWT. The token is sent as `Authorization: Bearer {{token}}`.\n\nTokens expire after 7 days. Re-run Login to refresh.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -13,10 +13,12 @@
   "item": [
     {
       "name": "Health",
+      "description": "Public endpoint — no authentication required.",
       "item": [
         {
           "name": "Health Check",
           "request": {
+            "description": "Returns the API status, version, and current timestamp. Use this to confirm the backend is running before making other requests.",
             "method": "GET",
             "url": "{{baseUrl}}/api/health"
           }
@@ -25,6 +27,7 @@
     },
     {
       "name": "Auth",
+      "description": "Public endpoints for patient registration and login.\n\nBoth requests include a test script that saves the returned JWT as `{{token}}` and the patient's ID as `{{patientId}}`. Run either one before using the Patients or Documents folders.",
       "item": [
         {
           "name": "Register",
@@ -45,6 +48,7 @@
             }
           ],
           "request": {
+            "description": "Creates a new patient account and returns a JWT.\n\nRequired fields: `first_name`, `last_name`, `date_of_birth`, `email`, `password` (min 8 characters).\n\nReturns `409` if the email is already registered.",
             "method": "POST",
             "url": "{{baseUrl}}/api/auth/register",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
@@ -73,6 +77,7 @@
             }
           ],
           "request": {
+            "description": "Authenticates a patient and returns a JWT valid for 7 days.\n\nReturns `401` for an unrecognised email or incorrect password.",
             "method": "POST",
             "url": "{{baseUrl}}/api/auth/login",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
@@ -86,10 +91,12 @@
     },
     {
       "name": "Patients",
+      "description": "Endpoints for reading and managing the authenticated patient's own record.\n\nAll requests require `Authorization: Bearer {{token}}`. Attempting to access another patient's record returns `403 Access denied`.",
       "item": [
         {
           "name": "Get My Profile",
           "request": {
+            "description": "Returns the logged-in patient's record. The backend ignores any query parameters and always returns the record belonging to the token owner.",
             "method": "GET",
             "url": "{{baseUrl}}/api/patients",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
@@ -98,6 +105,7 @@
         {
           "name": "Get Patient by ID",
           "request": {
+            "description": "Returns a single patient record by ID. Returns `403` if `{{patientId}}` does not match the authenticated patient.",
             "method": "GET",
             "url": "{{baseUrl}}/api/patients/{{patientId}}",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
@@ -106,6 +114,7 @@
         {
           "name": "Update Patient",
           "request": {
+            "description": "Partially updates the patient record. All fields are optional — only supplied fields are changed (COALESCE update). Returns `403` if `{{patientId}}` does not match the authenticated patient.",
             "method": "PUT",
             "url": "{{baseUrl}}/api/patients/{{patientId}}",
             "header": [
@@ -121,6 +130,7 @@
         {
           "name": "Delete Patient",
           "request": {
+            "description": "Permanently deletes the patient record and all associated documents (cascade). Returns `403` if `{{patientId}}` does not match the authenticated patient.",
             "method": "DELETE",
             "url": "{{baseUrl}}/api/patients/{{patientId}}",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
@@ -130,10 +140,12 @@
     },
     {
       "name": "Documents",
+      "description": "Endpoints for uploading, listing, downloading, and deleting patient documents.\n\nAll requests require `Authorization: Bearer {{token}}`. Documents are scoped to the authenticated patient — accessing another patient's documents returns `403 Access denied`.\n\nSupported file types: PDF, Word (.doc/.docx), and common image formats. Maximum file size: 10 MB.",
       "item": [
         {
           "name": "List Patient Documents",
           "request": {
+            "description": "Returns all documents uploaded for the patient, ordered by upload date descending.",
             "method": "GET",
             "url": "{{baseUrl}}/api/patients/{{patientId}}/documents",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
@@ -142,6 +154,7 @@
         {
           "name": "Upload Document",
           "request": {
+            "description": "Uploads a file for the patient. Use form-data with the following fields:\n- `document` (file) — the file to upload\n- `document_type` (text) — e.g. `consent_form`, `lab_result`, `insurance`, `general`\n- `description` (text, optional) — free-text note about the document",
             "method": "POST",
             "url": "{{baseUrl}}/api/patients/{{patientId}}/documents",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
@@ -158,6 +171,7 @@
         {
           "name": "Download Document",
           "request": {
+            "description": "Streams the document file as a download. Set `{{docId}}` to the ID returned by List or Upload. Returns `403` if the document belongs to a different patient.",
             "method": "GET",
             "url": "{{baseUrl}}/api/documents/{{docId}}/download",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
@@ -166,6 +180,7 @@
         {
           "name": "Delete Document",
           "request": {
+            "description": "Deletes the document record from the database and removes the file from disk. Returns `403` if the document belongs to a different patient.",
             "method": "DELETE",
             "url": "{{baseUrl}}/api/documents/{{docId}}",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
