@@ -2,14 +2,16 @@ const express = require('express');
 const router  = express.Router();
 const pool    = require('../config/database');
 
-// GET /api/patients - List all patients
-router.get('/', async (_req, res) => {
+const SAFE_COLUMNS = `id, first_name, last_name, date_of_birth, email, phone,
+                      address, medical_record_number, insurance_provider,
+                      insurance_id, notes, created_at, updated_at`;
+
+// GET /api/patients - Return only the logged-in patient's record
+router.get('/', async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `SELECT id, first_name, last_name, date_of_birth, email, phone,
-              medical_record_number, insurance_provider, created_at
-       FROM patients
-       ORDER BY last_name, first_name`
+      `SELECT ${SAFE_COLUMNS} FROM patients WHERE id = $1`,
+      [req.patient.id]
     );
     res.json({ success: true, data: rows, count: rows.length });
   } catch (err) {
@@ -17,11 +19,14 @@ router.get('/', async (_req, res) => {
   }
 });
 
-// GET /api/patients/:id - Get single patient
+// GET /api/patients/:id - Get single patient (own record only)
 router.get('/:id', async (req, res) => {
+  if (parseInt(req.params.id) !== req.patient.id) {
+    return res.status(403).json({ success: false, error: 'Access denied' });
+  }
   try {
     const { rows } = await pool.query(
-      'SELECT * FROM patients WHERE id = $1',
+      `SELECT ${SAFE_COLUMNS} FROM patients WHERE id = $1`,
       [req.params.id]
     );
     if (rows.length === 0) {
@@ -33,7 +38,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST /api/patients - Create new patient
+// POST /api/patients - Create new patient (admin only in a real app; kept for compatibility)
 router.post('/', async (req, res) => {
   const {
     first_name, last_name, date_of_birth, email, phone,
@@ -54,7 +59,7 @@ router.post('/', async (req, res) => {
          (first_name, last_name, date_of_birth, email, phone,
           address, medical_record_number, insurance_provider, insurance_id, notes)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
-       RETURNING *`,
+       RETURNING ${SAFE_COLUMNS}`,
       [first_name, last_name, date_of_birth, email, phone,
        address, medical_record_number, insurance_provider, insurance_id, notes]
     );
@@ -67,8 +72,12 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT /api/patients/:id - Update patient
+// PUT /api/patients/:id - Update own record only
 router.put('/:id', async (req, res) => {
+  if (parseInt(req.params.id) !== req.patient.id) {
+    return res.status(403).json({ success: false, error: 'Access denied' });
+  }
+
   const {
     first_name, last_name, date_of_birth, email, phone,
     address, medical_record_number, insurance_provider,
@@ -89,7 +98,7 @@ router.put('/:id', async (req, res) => {
          insurance_id          = COALESCE($9, insurance_id),
          notes      = COALESCE($10, notes)
        WHERE id = $11
-       RETURNING *`,
+       RETURNING ${SAFE_COLUMNS}`,
       [first_name, last_name, date_of_birth, email, phone,
        address, medical_record_number, insurance_provider,
        insurance_id, notes, req.params.id]
@@ -103,8 +112,12 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/patients/:id - Delete patient
+// DELETE /api/patients/:id - Delete own record only
 router.delete('/:id', async (req, res) => {
+  if (parseInt(req.params.id) !== req.patient.id) {
+    return res.status(403).json({ success: false, error: 'Access denied' });
+  }
+
   try {
     const { rows } = await pool.query(
       'DELETE FROM patients WHERE id = $1 RETURNING id, first_name, last_name',

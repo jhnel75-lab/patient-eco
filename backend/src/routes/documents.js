@@ -5,8 +5,11 @@ const fs      = require('fs');
 const pool    = require('../config/database');
 const { upload, UPLOAD_DIR } = require('../middleware/upload');
 
-// GET /api/patients/:id/documents - List documents for a patient
+// GET /api/patients/:id/documents - List documents for a patient (own only)
 router.get('/patients/:id/documents', async (req, res) => {
+  if (parseInt(req.params.id) !== req.patient.id) {
+    return res.status(403).json({ success: false, error: 'Access denied' });
+  }
   try {
     const { rows } = await pool.query(
       `SELECT id, original_name, mime_type, file_size, document_type,
@@ -22,15 +25,22 @@ router.get('/patients/:id/documents', async (req, res) => {
   }
 });
 
-// POST /api/patients/:id/documents - Upload document for a patient
+// POST /api/patients/:id/documents - Upload document for a patient (own only)
 router.post('/patients/:id/documents', upload.single('document'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, error: 'No file uploaded' });
   }
 
+  const filePath = path.join(UPLOAD_DIR, req.file.filename);
+
+  // Ownership check — clean up temp file on rejection
+  if (parseInt(req.params.id) !== req.patient.id) {
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    return res.status(403).json({ success: false, error: 'Access denied' });
+  }
+
   const { document_type = 'general', description = '' } = req.body;
   const { originalname, filename, mimetype, size } = req.file;
-  const filePath = path.join(UPLOAD_DIR, filename);
 
   try {
     // Verify patient exists
@@ -57,7 +67,7 @@ router.post('/patients/:id/documents', upload.single('document'), async (req, re
   }
 });
 
-// GET /api/documents/:id/download - Download a document
+// GET /api/documents/:id/download - Download a document (own only)
 router.get('/documents/:id/download', async (req, res) => {
   try {
     const { rows } = await pool.query(
@@ -69,6 +79,11 @@ router.get('/documents/:id/download', async (req, res) => {
     }
 
     const doc = rows[0];
+
+    if (doc.patient_id !== req.patient.id) {
+      return res.status(403).json({ success: false, error: 'Access denied' });
+    }
+
     if (!fs.existsSync(doc.file_path)) {
       return res.status(404).json({ success: false, error: 'File not found on disk' });
     }
@@ -81,24 +96,31 @@ router.get('/documents/:id/download', async (req, res) => {
   }
 });
 
-// DELETE /api/documents/:id - Delete a document
+// DELETE /api/documents/:id - Delete a document (own only)
 router.delete('/documents/:id', async (req, res) => {
   try {
     const { rows } = await pool.query(
-      'DELETE FROM documents WHERE id = $1 RETURNING *',
+      'SELECT * FROM documents WHERE id = $1',
       [req.params.id]
     );
     if (rows.length === 0) {
       return res.status(404).json({ success: false, error: 'Document not found' });
     }
 
-    // Remove file from disk
-    const filePath = rows[0].file_path;
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
+    const doc = rows[0];
+
+    if (doc.patient_id !== req.patient.id) {
+      return res.status(403).json({ success: false, error: 'Access denied' });
     }
 
-    res.json({ success: true, message: 'Document deleted', data: { id: rows[0].id } });
+    await pool.query('DELETE FROM documents WHERE id = $1', [req.params.id]);
+
+    // Remove file from disk
+    if (fs.existsSync(doc.file_path)) {
+      fs.unlinkSync(doc.file_path);
+    }
+
+    res.json({ success: true, message: 'Document deleted', data: { id: doc.id } });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

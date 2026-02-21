@@ -4,6 +4,8 @@ const cors       = require('cors');
 const path       = require('path');
 const patientRoutes  = require('./routes/patients');
 const documentRoutes = require('./routes/documents');
+const authRoutes     = require('./routes/auth');
+const requireAuth    = require('./middleware/auth');
 
 const app  = express();
 const PORT = process.env.PORT || 3001;
@@ -27,8 +29,12 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
-app.use('/api/patients',  patientRoutes);
-app.use('/api',           documentRoutes);
+// Public auth routes (no middleware)
+app.use('/api/auth', authRoutes);
+
+// Protected routes
+app.use('/api/patients', requireAuth, patientRoutes);
+app.use('/api',          requireAuth, documentRoutes);
 
 // ── 404 handler ────────────────────────────────────────────
 app.use((_req, res) => {
